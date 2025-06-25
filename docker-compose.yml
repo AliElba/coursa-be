@@ -1,0 +1,25 @@
+version: '3.9' # Specifies the Docker Compose file version to use. Version 3.9 is compatible with the latest features.
+
+services:
+  dev-db: # Defines a service name.
+    image: postgres:15 # Specifies the PostgreSQL image and version (15) to use.
+    container_name: coursa-dev-db # Names the container for easy identification.
+    restart: always # Ensures the container restarts automatically if it stops or the host reboots.
+    ports:
+      - "5432:5432" # Maps the container's PostgreSQL port (5432) to the host machine's port 5432.
+    environment:
+      POSTGRES_USER: admin # Sets the PostgreSQL username to 'admin'.
+      POSTGRES_PASSWORD: password # Sets the PostgreSQL password to 'password'.
+      POSTGRES_DB: coursa # Sets the default database name to 'my_database'.
+    volumes:
+      - postgres-data:/var/lib/postgresql/data # Maps a named volume to persist PostgreSQL data.
+    networks:
+      - app-network # Assigns this service to the custom network
+
+networks:
+  app-network: # Declares a custom network named 'app-network'
+    driver: bridge # Uses the default 'bridge' driver
+
+volumes:
+  postgres-data: # Declares a named volume called 'postgres-data'.
+    driver: local # Specifies that the volume uses the local driver (default for Docker).
