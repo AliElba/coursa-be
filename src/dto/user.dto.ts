@@ -14,13 +14,13 @@ export class UserDto {
   @ApiProperty()
   email: string;
 
-  // User's display name (optional)
-  @ApiProperty({ required: false })
-  name?: string;
+  // User's display name (nullable)
+  @ApiProperty({ required: false, nullable: true })
+  name: string | null;
 
-  // URL to the user's profile picture (optional)
-  @ApiProperty({ required: false })
-  picture?: string;
+  // URL to the user's profile picture (nullable)
+  @ApiProperty({ required: false, nullable: true })
+  picture: string | null;
 
   // Timestamp when the user was created
   @ApiProperty()

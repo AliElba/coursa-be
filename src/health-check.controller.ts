@@ -10,8 +10,19 @@ export class HealthCheckController {
    * Returns status ok if the service is running.
    */
   @Get()
-  @ApiOperation({ summary: 'Health check', description: 'Returns status ok if the service is running.' })
-  @ApiResponse({ status: 200, description: 'Service is healthy', schema: { example: { status: 'ok' } } })
+  @ApiOperation({ 
+    summary: 'Health check', 
+    description: 'Returns status ok if the service is running and healthy.' 
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Service is healthy', 
+    schema: { example: { status: 'ok' } } 
+  })
+  @ApiResponse({ 
+    status: 503, 
+    description: 'Service is unhealthy or not responding' 
+  })
   check() {
     // Simple health check response
     return { status: 'ok' };

@@ -14,8 +14,15 @@ export class AppController {
    * Returns a hello world message.
    */
   @Get()
-  @ApiOperation({ summary: 'Root endpoint', description: 'Returns a hello world message.' })
-  @ApiResponse({ status: 200, description: 'Hello World message', schema: { example: 'Hello World!' } })
+  @ApiOperation({ 
+    summary: 'Root endpoint', 
+    description: 'Returns a hello world message to verify the API is running.' 
+  })
+  @ApiResponse({ 
+    status: 200, 
+    description: 'Hello World message', 
+    schema: { example: 'Hello World!' } 
+  })
   getHello(): string {
     // Delegate to AppService for the message
     return this.appService.getHello();
