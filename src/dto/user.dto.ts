@@ -24,9 +24,9 @@ export class UserDto {
 
   // Timestamp when the user was created
   @ApiProperty()
-  createdAt: string;
+  createdAt: Date;
 
   // Timestamp when the user was last updated
   @ApiProperty()
-  updatedAt: string;
+  updatedAt: Date;
 } 

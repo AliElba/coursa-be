@@ -16,10 +16,10 @@ export class UserCourseDto {
   status: 'PENDING' | 'ACTIVE';
 
   @ApiProperty()
-  createdAt: string;
+  createdAt: Date;
 
   @ApiProperty()
-  updatedAt: string;
+  updatedAt: Date;
 
   @ApiProperty({ type: () => CourseDto })
   course: CourseDto;
