@@ -1,5 +1,7 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
+import { CourseDto, LectureDto } from '../dto/course.dto';
+import { Prisma, Course as PrismaCourse, Lecture as PrismaLecture } from '@prisma/client';
 
 @Injectable()
 export class CoursesService {
@@ -7,14 +9,18 @@ export class CoursesService {
 
   // List all available courses
   async getAllCourses() {
-    return this.prisma.course.findMany();
+    const courses = await this.prisma.course.findMany({ include: { lectures: true } });
+    return courses.map((course: PrismaCourse & { lectures: PrismaLecture[] }) => ({
+      ...course,
+      lectures: course.lectures.map((lecture: PrismaLecture) => ({ ...lecture }))
+    }));
   }
 
   // List all courses for the logged-in user, including status
   async getMyCourses(userId: number) {
     return this.prisma.userCourse.findMany({
       where: { userId },
-      include: { course: true },
+      include: { course: { include: { lectures: true } } },
     });
   }
 
@@ -49,5 +55,14 @@ export class CoursesService {
       where: { id: userCourseId },
       data: { status: 'ACTIVE' },
     });
+  }
+
+  async getCourseById(id: number): Promise<CourseDto> {
+    const course = await this.prisma.course.findUnique({ where: { id }, include: { lectures: true } });
+    if (!course) throw new NotFoundException('Course not found');
+    return {
+      ...course,
+      lectures: course.lectures.map((lecture: PrismaLecture) => ({ ...lecture }))
+    };
   }
 } 

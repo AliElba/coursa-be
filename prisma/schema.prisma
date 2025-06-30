@@ -33,6 +33,7 @@ model Course {
   numberOfExams Int
   price         Float
   userCourses   UserCourse[]
+  lectures      Lecture[] // New relation: a course has many lectures
 }
 
 model UserCourse {
@@ -45,6 +46,17 @@ model UserCourse {
 
   user   User   @relation(fields: [userId], references: [id])
   course Course @relation(fields: [courseId], references: [id])
+}
+
+model Lecture {
+  id          Int     @id @default(autoincrement())
+  title       String
+  description String
+  image       String
+  videoUrl    String
+  materialUrl String
+  courseId    Int
+  course      Course  @relation(fields: [courseId], references: [id])
 }
 
 enum UserCourseStatus {

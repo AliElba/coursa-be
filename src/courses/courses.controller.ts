@@ -1,5 +1,5 @@
-import { Controller, Get, Post, Patch, Param, UseGuards } from '@nestjs/common';
-import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam } from '@nestjs/swagger';
+import { Controller, Get, Post, Patch, Param, UseGuards, ParseIntPipe } from '@nestjs/common';
+import { ApiTags, ApiBearerAuth, ApiOperation, ApiResponse, ApiParam, ApiOkResponse, ApiNotFoundResponse } from '@nestjs/swagger';
 import { CoursesService } from './courses.service';
 import { CurrentUser } from '../current-user.decorator';
 import { JwtAuthGuard } from '../jwt-auth.guard';
@@ -107,5 +107,16 @@ export class CoursesController {
   })
   async activateCourse(@Param('id') userCourseId: number, @CurrentUser() user: any) {
     return this.coursesService.activateCourse(user.id, Number(userCourseId));
+  }
+
+  @Get('courses/:id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get course details by ID' })
+  @ApiParam({ name: 'id', type: Number, description: 'Course ID' })
+  @ApiResponse({ status: 200, description: 'Course details', type: CourseDto })
+  @ApiResponse({ status: 404, description: 'Course not found' })
+  async getCourseById(@Param('id', ParseIntPipe) id: number): Promise<CourseDto> {
+    return this.coursesService.getCourseById(id);
   }
 } 
