@@ -5,6 +5,7 @@ import { CurrentUser } from '../current-user.decorator';
 import { JwtAuthGuard } from '../jwt-auth.guard';
 import { CourseDto } from '../dto/course.dto';
 import { UserCourseDto } from '../dto/user-course.dto';
+import { UnauthorizedException } from '@nestjs/common';
 
 @ApiTags('courses')
 @Controller()
@@ -44,6 +45,9 @@ export class CoursesController {
     description: 'Unauthorized - Invalid or missing JWT token' 
   })
   async getMyCourses(@CurrentUser() user: any): Promise<UserCourseDto[]> {
+    if (!user || !user.id) {
+      throw new UnauthorizedException('User not authenticated');
+    }
     return this.coursesService.getMyCourses(user.id);
   }
 
