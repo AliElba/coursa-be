@@ -1,26 +1,60 @@
 import { Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { CourseDto, LectureDto } from '../dto/course.dto';
-import { Prisma, Course as PrismaCourse, Lecture as PrismaLecture } from '@prisma/client';
+import { UserCourseDto } from '../dto/user-course.dto';
+import { Prisma } from '@prisma/client';
 
 @Injectable()
 export class CoursesService {
   constructor(private prisma: PrismaService) {}
 
   // List all available courses
-  async getAllCourses() {
-    const courses = await this.prisma.course.findMany({ include: { lectures: true } });
-    return courses.map((course: PrismaCourse & { lectures: PrismaLecture[] }) => ({
-      ...course,
-      lectures: course.lectures.map((lecture: PrismaLecture) => ({ ...lecture }))
-    }));
+  async getAllCourses(): Promise<CourseDto[]> {
+    const courses = await this.prisma.course.findMany({
+      include: { lectures: true } as any
+    });
+    return courses.map(course => ({
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      image: course.image,
+      hours: course.hours,
+      numberOfExams: course.numberOfExams,
+      price: course.price,
+      lectures: course.lectures ? [...(course.lectures as any[])].sort((a, b) => a.title.localeCompare(b.title)) : []
+    }) as unknown as CourseDto);
   }
 
   // List all courses for the logged-in user, including status
-  async getMyCourses(userId: number) {
-    return this.prisma.userCourse.findMany({
+  async getMyCourses(userId: number): Promise<UserCourseDto[]> {
+    const userCourses = await this.prisma.userCourse.findMany({
       where: { userId },
-      include: { course: { include: { lectures: true } } },
+      include: {
+        course: {
+          include: { lectures: true } as any
+        }
+      },
+    });
+    return userCourses.map(userCourse => {
+      const course = userCourse.course;
+      return {
+        id: userCourse.id,
+        userId: userCourse.userId,
+        courseId: userCourse.courseId,
+        status: userCourse.status,
+        createdAt: userCourse.createdAt,
+        updatedAt: userCourse.updatedAt,
+        course: {
+          id: course.id,
+          title: course.title,
+          description: course.description,
+          image: course.image,
+          hours: course.hours,
+          numberOfExams: course.numberOfExams,
+          price: course.price,
+          lectures: course.lectures ? [...(course.lectures as any[])].sort((a, b) => a.title.localeCompare(b.title)) : []
+        }
+      } as unknown as UserCourseDto;
     });
   }
 
@@ -58,11 +92,20 @@ export class CoursesService {
   }
 
   async getCourseById(id: number): Promise<CourseDto> {
-    const course = await this.prisma.course.findUnique({ where: { id }, include: { lectures: true } });
+    const course = await this.prisma.course.findUnique({
+      where: { id },
+      include: { lectures: true } as any
+    });
     if (!course) throw new NotFoundException('Course not found');
     return {
-      ...course,
-      lectures: course.lectures.map((lecture: PrismaLecture) => ({ ...lecture }))
-    };
+      id: course.id,
+      title: course.title,
+      description: course.description,
+      image: course.image,
+      hours: course.hours,
+      numberOfExams: course.numberOfExams,
+      price: course.price,
+      lectures: course.lectures ? [...(course.lectures as any[])].sort((a, b) => a.title.localeCompare(b.title)) : []
+    } as unknown as CourseDto;
   }
 } 
