@@ -3,6 +3,8 @@ import { PrismaService } from '../prisma.service';
 import { CourseDto, LectureDto } from '../dto/course.dto';
 import { UserCourseDto } from '../dto/user-course.dto';
 import { Prisma } from '@prisma/client';
+import Stripe from 'stripe';
+import { StripeCheckoutSessionDto } from '../dto/stripe-checkout-session.dto';
 
 @Injectable()
 export class CoursesService {
@@ -107,5 +109,38 @@ export class CoursesService {
       price: course.price,
       lectures: course.lectures ? [...(course.lectures as any[])].sort((a, b) => a.title.localeCompare(b.title)) : []
     } as unknown as CourseDto;
+  }
+
+  /**
+   * Creates a Stripe Checkout session for a course purchase
+   * @param courseId - The course to purchase
+   * @param user - The current user (must have email)
+   * @returns StripeCheckoutSessionDto with session URL
+   */
+  async createStripeCheckoutSession(courseId: number, user: { id: number; email: string }): Promise<StripeCheckoutSessionDto> {
+    // Initialize Stripe with secret key
+    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+    // Get course details
+    const course = await this.getCourseById(courseId);
+    // Create Stripe Checkout session
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      customer_email: user.email,
+      line_items: [
+        {
+          price_data: {
+            currency: 'usd',
+            product_data: { name: course.title },
+            unit_amount: Math.round(course.price * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      mode: 'payment',
+      success_url: 'http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}',
+      cancel_url: 'http://localhost:4200/payment-cancel',
+      metadata: { userId: user.id.toString(), courseId: course.id.toString() },
+    });
+    return { url: session.url! };
   }
 } 

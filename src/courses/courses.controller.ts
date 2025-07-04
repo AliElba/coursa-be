@@ -6,6 +6,7 @@ import { JwtAuthGuard } from '../jwt-auth.guard';
 import { CourseDto } from '../dto/course.dto';
 import { UserCourseDto } from '../dto/user-course.dto';
 import { UnauthorizedException } from '@nestjs/common';
+import { StripeCheckoutSessionDto } from '../dto/stripe-checkout-session.dto';
 
 @ApiTags('courses')
 @Controller()
@@ -122,5 +123,18 @@ export class CoursesController {
   @ApiResponse({ status: 404, description: 'Course not found' })
   async getCourseById(@Param('id', ParseIntPipe) id: number): Promise<CourseDto> {
     return this.coursesService.getCourseById(id);
+  }
+
+  /**
+   * Create a Stripe Checkout session for a course purchase
+   */
+  @Post('courses/:id/checkout-session')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Create Stripe Checkout session', description: 'Create a Stripe Checkout session for the specified course and return the session URL.' })
+  @ApiParam({ name: 'id', description: 'Course ID to purchase', type: Number })
+  @ApiOkResponse({ description: 'Stripe Checkout session created', type: StripeCheckoutSessionDto })
+  async createStripeCheckoutSession(@Param('id', ParseIntPipe) courseId: number, @CurrentUser() user: any): Promise<StripeCheckoutSessionDto> {
+    return this.coursesService.createStripeCheckoutSession(courseId, user);
   }
 } 
