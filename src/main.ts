@@ -7,6 +7,12 @@ async function bootstrap() {
   // Create the NestJS application instance
   const app = await NestFactory.create(AppModule);
 
+  // Enable CORS for the deployed frontend domain
+  app.enableCors({
+    origin: ['https://coursa-fe.onrender.com'], // Allow only the deployed frontend
+    credentials: true, // Allow cookies/auth headers if needed
+  });
+
   // Configure Swagger/OpenAPI documentation
   const config = new DocumentBuilder()
     .setTitle('Coursa API')
