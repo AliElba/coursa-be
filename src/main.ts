@@ -7,10 +7,12 @@ async function bootstrap() {
   // Create the NestJS application instance
   const app = await NestFactory.create(AppModule);
 
-  // Enable CORS for the deployed frontend domain
+  // Enable CORS for the deployed frontend domain(s) using an environment variable
+  // Set CORS_ORIGIN in your Render environment (comma-separated for multiple origins)
+  const allowedOrigins = (process.env.CORS_ORIGIN ?? '').split(',').map(origin => origin.trim()).filter(Boolean);
   app.enableCors({
-    origin: ['https://coursa-fe.onrender.com'], // Allow only the deployed frontend
-    credentials: true, // Allow cookies/auth headers if needed
+    origin: allowedOrigins.length > 0 ? allowedOrigins : false, // false disables CORS if not set
+    credentials: true,
   });
 
   // Configure Swagger/OpenAPI documentation
