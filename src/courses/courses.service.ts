@@ -122,6 +122,8 @@ export class CoursesService {
     const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
     // Get course details
     const course = await this.getCourseById(courseId);
+    // Use environment variable for frontend URL, fallback to localhost for dev
+    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -137,8 +139,8 @@ export class CoursesService {
         },
       ],
       mode: 'payment',
-      success_url: 'http://localhost:4200/payment-success?session_id={CHECKOUT_SESSION_ID}',
-      cancel_url: 'http://localhost:4200/payment-cancel',
+      success_url: `${frontendUrl}/payment-success?session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${frontendUrl}/payment-cancel`,
       metadata: { userId: user.id.toString(), courseId: course.id.toString() },
     });
     return { url: session.url! };
