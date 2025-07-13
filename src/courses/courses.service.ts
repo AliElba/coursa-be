@@ -15,7 +15,7 @@ export class CoursesService {
     const courses = await this.prisma.course.findMany({
       include: { lectures: true } as any
     });
-    return courses.map(course => ({
+    return courses.map((course: any) => ({
       id: course.id,
       title: course.title,
       description: course.description,
@@ -37,7 +37,7 @@ export class CoursesService {
         }
       },
     });
-    return userCourses.map(userCourse => {
+    return userCourses.map((userCourse: any) => {
       const course = userCourse.course;
       return {
         id: userCourse.id,
