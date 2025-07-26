@@ -3,16 +3,16 @@ import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
 import { PrismaService } from './prisma.service';
 import { UserDto } from './dto/user.dto';
+import { AppConfigService } from './core/configuration.service';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy) {
-  constructor(private prisma: PrismaService) {
+  constructor(private prisma: PrismaService, private appConfig: AppConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      // Ensure secretOrKey is always a string to satisfy type requirements
-      // WARNING: If JWT_SECRET is not set, authentication will fail
-      secretOrKey: process.env.JWT_SECRET || '',
+      // Use AppConfigService for JWT secret
+      secretOrKey: appConfig.jwtSecret,
     });
   }
 

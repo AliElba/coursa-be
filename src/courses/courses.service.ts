@@ -4,11 +4,12 @@ import { CourseDto, LectureDto } from '../dto/course.dto';
 import { UserCourseDto } from '../dto/user-course.dto';
 import { Prisma } from '@prisma/client';
 import Stripe from 'stripe';
-import { StripeCheckoutSessionDto } from '../dto/stripe-checkout-session.dto';
+import { StripeCheckoutSessionUrlDto } from '../dto/stripe-checkout-session-url.dto';
+import { AppConfigService } from '../core/configuration.service';
 
 @Injectable()
 export class CoursesService {
-  constructor(private prisma: PrismaService) {}
+  constructor(private prisma: PrismaService, private appConfig: AppConfigService) {}
 
   // List all available courses
   async getAllCourses(): Promise<CourseDto[]> {
@@ -112,18 +113,20 @@ export class CoursesService {
   }
 
   /**
-   * Creates a Stripe Checkout session for a course purchase
+   * Creates a Stripe Checkout session for a course purchase.
+   * Returns a DTO containing the Stripe-hosted payment page URL.
+   * The frontend should redirect the user to this URL to complete payment.
    * @param courseId - The course to purchase
    * @param user - The current user (must have email)
-   * @returns StripeCheckoutSessionDto with session URL
+   * @returns StripeCheckoutSessionUrlDto with session URL
    */
-  async createStripeCheckoutSession(courseId: number, user: { id: number; email: string }): Promise<StripeCheckoutSessionDto> {
-    // Initialize Stripe with secret key
-    const stripe = new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  async createStripeCheckoutSession(courseId: number, user: { id: number; email: string }): Promise<StripeCheckoutSessionUrlDto> {
+    // Initialize Stripe with secret key from AppConfigService
+    const stripe = new Stripe(this.appConfig.stripeSecretKey, { apiVersion: '2025-06-30.basil' });
     // Get course details
     const course = await this.getCourseById(courseId);
-    // Use environment variable for frontend URL, fallback to localhost for dev
-    const frontendUrl = process.env.FRONTEND_URL || 'http://localhost:4200';
+    // Use AppConfigService for frontend URL
+    const frontendUrl = this.appConfig.frontendUrl;
     // Create Stripe Checkout session
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ['card'],
@@ -143,6 +146,7 @@ export class CoursesService {
       cancel_url: `${frontendUrl}/payment-cancel`,
       metadata: { userId: user.id.toString(), courseId: course.id.toString() },
     });
+    // Return the Stripe Checkout session URL for frontend redirection
     return { url: session.url! };
   }
 } 
