@@ -6,7 +6,8 @@ import { JwtAuthGuard } from '../jwt-auth.guard';
 import { CourseDto } from '../dto/course.dto';
 import { UserCourseDto } from '../dto/user-course.dto';
 import { UnauthorizedException } from '@nestjs/common';
-import { StripeCheckoutSessionDto } from '../dto/stripe-checkout-session.dto';
+import { StripeCheckoutSessionUrlDto } from '../dto/stripe-checkout-session-url.dto';
+import { ConfigModule } from '@nestjs/config';
 
 @ApiTags('courses')
 @Controller()
@@ -126,15 +127,16 @@ export class CoursesController {
   }
 
   /**
-   * Create a Stripe Checkout session for a course purchase
+   * Create a Stripe Checkout session for a course purchase.
+   * Returns a DTO containing the Stripe-hosted payment page URL for frontend redirection.
    */
   @Post('courses/:id/checkout-session')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create Stripe Checkout session', description: 'Create a Stripe Checkout session for the specified course and return the session URL.' })
   @ApiParam({ name: 'id', description: 'Course ID to purchase', type: Number })
-  @ApiOkResponse({ description: 'Stripe Checkout session created', type: StripeCheckoutSessionDto })
-  async createStripeCheckoutSession(@Param('id', ParseIntPipe) courseId: number, @CurrentUser() user: any): Promise<StripeCheckoutSessionDto> {
+  @ApiOkResponse({ description: 'Stripe Checkout session created', type: StripeCheckoutSessionUrlDto })
+  async createStripeCheckoutSession(@Param('id', ParseIntPipe) courseId: number, @CurrentUser() user: any): Promise<StripeCheckoutSessionUrlDto> {
     return this.coursesService.createStripeCheckoutSession(courseId, user);
   }
 } 

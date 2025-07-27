@@ -2,23 +2,26 @@ import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { PrismaService } from '../prisma.service';
 import { JwtService } from '@nestjs/jwt';
 import { OAuth2Client } from 'google-auth-library';
-
-// Initialize Google OAuth2 client with the client ID from environment variables
-const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+import { AppConfigService } from '../core/configuration.service';
 
 @Injectable()
 export class AuthService {
+  private client: OAuth2Client;
+
   constructor(
     private prisma: PrismaService,
     private jwtService: JwtService,
-  ) {}
+    private appConfig: AppConfigService,
+  ) {
+    this.client = new OAuth2Client(this.appConfig.googleClientId);
+  }
 
   // Main logic for Google Sign-In
   async googleLogin(idToken: string) {
     // 1. Verify Google token
-    const ticket = await client.verifyIdToken({
+    const ticket = await this.client.verifyIdToken({
       idToken,
-      audience: process.env.GOOGLE_CLIENT_ID,
+      audience: this.appConfig.googleClientId,
     });
     const payload = ticket.getPayload();
     if (!payload) throw new UnauthorizedException('Invalid Google token');

@@ -44,6 +44,10 @@ npx prisma migrate dev --name init
 npx prisma generate
 ```
 
+```
+npx prisma migrate deploy
+```
+
 ### 5. Run the app
 ```
 npm run start:dev
